@@ -1,0 +1,30 @@
+name: DailyStockBot
+on:
+  schedule:
+    - cron: '30 6 * * 1-5' # 台灣 14:30 執行
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - name: Install
+        run: pip install requests pandas
+      - name: Run
+        env:
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+        run: python main.py
+      - name: Save DB
+        run: |
+          git config --global user.name "Bot"
+          git config --global user.email "bot@github.com"
+          git add stock_history.db
+          git commit -m "Update DB" || exit 0
+          git push
